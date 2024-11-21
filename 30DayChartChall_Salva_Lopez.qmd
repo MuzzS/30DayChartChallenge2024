@@ -1,0 +1,1390 @@
+---
+title: "30DayGraphChallenge"
+author: "Mario Salvador"
+format: 
+  html: 
+    embed-resources: true
+editor: visual
+---
+
+## Intro
+
+```{r}
+if(!require("reticulate")) install.packages("reticulate")
+if(!require("quarto")) install.packages("quarto")
+
+
+library(reticulate)
+use_python("/Users/MuzDog/anaconda3/bin/python3")
+```
+
+A continuación se presenta el cuaderno con los graficos creados para el 30DayChartChallenge propuesto como actividad en la asignatura de Visualizacion de Datos del master de Big Data de la universidad internacional de Valencia
+
+## Descripción
+
+```{r}
+#| out.width: 90%
+knitr::include_graphics("prompts.png")
+```
+
+## Gráficos
+
+### Semana 1: Comparisons
+
+#### **Gráfico 1**
+
+##### **Dia 1: Part-to-whole**
+
+```{r}
+knitr::include_url("https://datawrapper.dwcdn.net/2qtb7/1/", height = 800)
+```
+
+#### **Gráfico 2**
+
+##### **Dia 2: Neo**
+
+```{python}
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+import matplotlib.image as mpimg
+
+data = {
+'Franchise': ['The Matrix', 'The Matrix', 'The Matrix', 'The Matrix',
+'John Wick', 'John Wick', 'John Wick', 'John Wick'],
+'Movie': ['1', '2', '3', '4', '1', '2', '3', '4'],
+'Rating': [7.9, 6.4, 6.0, 4.9, 6.4, 6.4, 6.4, 6.7]
+}
+
+df = pd.DataFrame(data)
+labels = ['1', '2', '3', '4']
+x = np.arange(len(labels))
+fig, ax = plt.subplots(figsize=(10,6))
+
+matrix_ratings = df[df['Franchise'] == 'The Matrix']['Rating']
+wick_ratings = df[df['Franchise'] == 'John Wick']['Rating']
+
+
+bars1 = ax.bar(x - 0.3/2, matrix_ratings, width = 0.3, label='The Matrix', color='#6A67CE')
+bars2 = ax.bar(x + 0.3/2, wick_ratings, width = 0.3, label='John Wick', color='#FF6F61')
+    
+matrix_trend = np.polyfit(x, matrix_ratings, 1)
+matrix_trend_line = np.polyval(matrix_trend, x)
+
+wick_trend = np.polyfit(x, wick_ratings, 1)
+wick_trend_line = np.polyval(wick_trend, x)
+
+ax.plot(x, matrix_trend_line, color='darkviolet', linestyle='--', label='Tendencia The Matrix')
+ax.plot(x, wick_trend_line, color='darkred', linestyle='--', label='Tendencia John Wick')
+
+ax.set_xlabel('Película')
+ax.set_ylabel('Rating')
+ax.set_title('Comparación de Ratings entre The Matrix y John Wick')
+ax.set_xticks(x)
+ax.set_xticklabels(labels)
+ax.legend( loc='upper center', ncol = 2)
+
+plt.figtext(0.5, -0.05, "Gráfico: Mario Salvador López Muñoz - Fuente: Filmaffinity - Creado con python y ChatGPT",
+wrap=True, horizontalalignment='center', fontsize=10, style='italic', color='gray')
+
+plt.show()
+```
+
+```{r}
+# Libraries
+
+library(ggbump)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+
+# Datos de ejemplo
+data <- data.frame(
+  Franchise = c('The Matrix', 'The Matrix', 'The Matrix', 'The Matrix', 
+                'John Wick', 'John Wick', 'John Wick', 'John Wick'),
+  Movie = c('1', '2', '3', '4', '1', '2', '3', '4'),
+  Rating_filmaffinity = c(7.9, 6.4, 6.0, 4.9, 6.4, 6.4, 6.4, 6.7),
+  Rating_IMDB = c(8.7, 7.2, 6.7, 5.6, 7.4, 7.4, 7.4, 7.7),
+  Name = c("The Matrix \n(1999)", 
+           "The Matrix \nReloaded (2003)", 
+           "The Matrix \nRevolutions (2003)", 
+           "The Matrix \nResurrections (2021)",  
+           "John Wick \nOtro día para matar \n(2014)", 
+           "John Wick: Chapter 2 \n(2017)", 
+           "John Wick: Chapter 3 \nParabellum \n(2019)",  
+           "John Wick: Capítulo 4 \n(2023)")
+)
+
+data$Rating_filmaffinity <- as.numeric(data$Rating_filmaffinity)
+data$Rating_IMDB <- as.numeric(data$Rating_IMDB)
+data$Franchise <- factor(data$Franchise, levels = c('The Matrix', 'John Wick'))
+data$Movie <- as.integer(data$Movie, levels = c('1', '2', '3', '4'))
+#GRafico
+ggplot(data, aes(x = Movie, y = Rating_filmaffinity, color = Franchise)) +
+  geom_bump(size = 2) +
+  geom_point(size = 6) +
+  geom_text_repel(aes(label = Name), nudge_y = 0.2, fontface = "bold", size=3, color = "grey60") +
+  theme_minimal() +
+  labs(
+    title = "Rating de peliculas donde aparece Neo \n aunque no sea Neo",
+    x = "Pelicula en la serie",
+    y = "Rating"
+  ) +
+  theme(
+plot.title = element_text(
+        family = "sans", 
+        size = 20,
+        face = "bold", 
+        color = "#000000"
+    ))
+```
+
+#### **Gráfico 3**
+
+##### **Dia 3: Makeover**
+
+```{r}
+
+# Load packages
+library(tidyverse)
+library(fuzzyjoin)
+library(ggstream)
+library(colorspace)
+library(ggtext)
+library(cowplot)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+
+#Importación de los datos
+#setwd("/Users/MuzDog/Desktop/MasterBigData/0_Estadistica_Adv/Actividad_2")
+data <- read_csv("/Users/MuzDog/Desktop/MasterBigData/Estadistica_Adv/Actividad_2/export (1).csv")
+
+data$date <- as.Date(data$date, format="%Y-%m")
+
+#Preprocesamiento (Limpieza filas y columnas vacias):
+data_clean <- data %>% drop_na(tavg, tmin, tmax) # Limpieza filas vacias
+data_clean <- data_clean %>% select(-snow, -wdir, -wspd, -wpgt, -pres, -tsun) # Limpieza columnas vacias
+
+data_clean$AñoMes <- format(data_clean$date, "%Y-%m") # Crear una nueva columna que solo tenga el año y el mes
+
+data_mensual <- data_clean %>% # Calcular la temperatura media para cada mes
+  group_by(AñoMes) %>%
+  summarise(Temp_Media_Mensual = mean(tavg, na.rm = TRUE), Temp_Minima_Mensual = mean(tmin, na.rm = TRUE), Temp_Maxima_Mensual = mean(tmax, na.rm = TRUE))
+
+data_mensual$AñoMes <- as.Date(paste0(data_mensual$AñoMes, "-01"))
+
+
+# Visualizacion inicial
+
+plot1 <- ggplot(data_clean, aes(x = date)) +
+  geom_line(aes(y = tmax, color = "Tmax")) +
+  geom_line(aes(y = tmin, color = "Tmin")) +
+  geom_line(aes(y = tavg, color = "Tavg")) +
+  
+  labs(title = "Variables Meteorológicas en Madrid (2015-2024)",
+       x = "Fecha", y = "Valor") +
+  scale_color_manual(values = c("Tmax" = "red", "Tmin" = "green", "Tavg" = "yellow")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+
+#Makeover
+
+# Crear eñ cpnjunto de datos a partir del anterior.(Paso innecesario pero me da pereza cambiar todo)
+x <- data_clean$date
+y1 <- data_clean$tmin
+y2 <- data_clean$tavg
+y3 <- data_clean$tmax
+
+data <- data.frame(x, y1, y2, y3)
+
+# Encontrar el valor mínimo y sus coordenadas
+min_tmin <- min(data$y1, na.rm = TRUE)
+min_tmin_x <- data$x[which.min(data$y1)]
+
+# Crear el gráfico
+plot2 <- ggplot() +
+  geom_line(aes(x = x, y = y1, color = "T Minima (ºC)"), data = data, linewidth = 0.7) +
+  geom_line(aes(x = x, y = y2, color = "T Media (ºC)"), data = data, linewidth = 0.7) +
+  geom_line(aes(x = x, y = y3, color = "T Maxima (ºC)"), data = data, linewidth = 0.7) +
+
+
+  geom_line(aes(x = AñoMes, y = Temp_Minima_Mensual, color = "blue"), data = data_mensual, linewidth = 0.1) +
+  geom_line(aes(x = AñoMes, y = Temp_Media_Mensual, color = "T Media Mensual (ºC)"), data = data_mensual, linewidth = 0.7) +
+  geom_line(aes(x = AñoMes, y = Temp_Maxima_Mensual, color = "darkmagenta"), data = data_mensual, linewidth = 0.1) +
+  
+  # Colorear el área entre y1 y y2
+  geom_ribbon(aes(x = AñoMes, ymin = pmin(Temp_Minima_Mensual, Temp_Media_Mensual), ymax = pmax(Temp_Minima_Mensual, Temp_Media_Mensual), 
+              fill = "Área T Min - T Media"), alpha = 0.5 , data = data_mensual) +
+  
+  # Colorear el área entre y2 y y3
+  geom_ribbon(aes(x = AñoMes, ymin = pmin(Temp_Media_Mensual, Temp_Maxima_Mensual), ymax = pmax(Temp_Media_Mensual, Temp_Maxima_Mensual), 
+              fill = "Área T Media - T Max"), alpha = 0.5, data = data_mensual) +
+  
+  
+  
+  labs(title = "Variación de la temperatura en Madrid (2015-2024)", subtitle = " Linea de temperaturas diarias para visualizar cambios puntuales \ncon areas representando temperaturas mensuales medias",x = "Tiempo en años", y = "Temperatura") +
+  
+  # Leyenda para las áreas
+  scale_fill_manual(name = "Áreas", 
+                    values = c("Área T Min - T Media" = "blue", 
+                               "Área T Media - T Max" = "darkmagenta")) +
+  
+  # Leyenda para las líneas
+  scale_color_manual(name = "Líneas", 
+                     values = c("T Minima (ºC)" = "green", 
+                                "T Media (ºC)" = "yellow", 
+                                "T Maxima (ºC)" = "red",
+                                "T Media Mensual (ºC)" = "black")) +
+
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y", 
+               minor_breaks = "3 months") +
+  
+  scale_y_continuous(breaks = seq((floor(min(data$y1) / 10) * 10  - 10), (ceiling(max(data$y3) / 10) * 10 + 10), by = 10)) +
+  
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"), plot.subtitle = element_text(hjust = 0.5), plot.caption = element_text(hjust = 0, face = "italic")  # Estilo del comentario
+  ) +
+  
+  # Añadir el comentario debajo del gráfico
+  labs(caption = "Autor: Mario Salvador López Muñoz | Datos: Meteostat") +
+  
+  guides(color = guide_legend(override.aes = list(size = 5))) + 
+  
+  geom_segment(aes(x = min_tmin_x, y = min_tmin +2, xend = min_tmin_x + 100, yend = min_tmin +2.5), 
+               color = "black") +  # Línea hacia arriba
+  
+  # Añadir etiqueta "Filomena" en un recuadro
+  geom_label(aes(x = min_tmin_x, y = min_tmin, label = "Filomena"), 
+             fill = "white", color = "black", size = 4, 
+             label.size = 0.5,  # Grosor del borde
+             hjust = -0.2, vjust = -1)
+
+grid.arrange(plot1, plot2, ncol = 1)
+
+```
+
+#### **Gráfico 4**
+
+##### **Dia 4: Waffle**
+
+```{r}
+# Cargar las librerías necesarias
+library(ggplot2)
+library(RColorBrewer)
+library(waffle)
+
+# Datos para la subdivisión de Chordata
+data1 <- data.frame(
+  Categoria = c('Peces de espinas', 'Anfibios', 'Aves', 'Mamíferos', 'Reptiles', 'Peces cartilaginosos'),
+  Cantidad = c(159, 84, 83, 37, 32, 1)
+)
+
+# Convertir las clases en una forma adecuada
+data1$Celdas <- round(data1$Cantidad / sum(data1$Cantidad) * 100)
+data1$Celdas[data1$Categoria == "Peces cartilaginosos"] <- data1$Celdas[data1$Categoria == "Peces cartilaginosos"] + 1
+
+# Usar la paleta Set1 de RColorBrewer para los colores
+colores_set1 <- c("#4DAF4A", "#FF7F00", "#E41A1C", "#984EA3", "#377EB8", "#A65628", "#984EA3", "#FF69B4")
+# Crear el waffle chart con colores de la paleta Set1
+waffle_subdivision <- ggplot(data1, aes(fill = Categoria, values = Celdas)) +
+  geom_waffle(n_rows = 10, color = "white", radius = grid::unit(0.2, "npc"), width = 0.97, height = 0.97) +  # Definir filas y color de bordes
+  scale_fill_manual(values = colores_set1) +  # Usar los colores de Set1
+  labs(title = "Distribución de animales extintos", 
+       x = "Cada cuadrado representa 1%", 
+       fill = "Clase") +  # Cambiar el nombre de la leyenda
+  theme_minimal() +  
+  theme(plot.title = element_text(hjust = 0.5, vjust = -5, face = "bold", size = 16), 
+        plot.subtitle = element_text(hjust = 0.5), 
+        plot.caption = element_text(hjust = 0.2, vjust = 10, face = "italic"),
+        legend.position = "right",  # Posición de la leyenda
+        axis.title.y = element_blank(),  # Eliminar el label del eje Y
+        axis.title.x = element_text(vjust = 8), #Mueve la posicion del titulo del eje x
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  labs(caption = "Autor: Mario Salvador López Muñoz | Datos: IUCN Red List of Threatened Species. Version 2024-1")
+
+print(waffle_subdivision)
+```
+
+#### **Gráfico 5**
+
+##### **Dia 5 : Diverging**
+
+```{r}
+
+library(ggplot2)
+
+oecd_data <- data.frame(
+  paises = c('Alemania', 'Arabia Saudita', 'Argentina', 'Australia', 'Brasil', 'Canadá', 'China', 'Corea del Sur', 'Estados Unidos', 'Francia', 'India', 'Indonesia', 'Italia', 'Japón', 'México', 'Reino Unido', 'Rusia', 'Sudáfrica', 'Türkiye'),
+  pib_percapita = c(49520, 30686, 12959, 64440, 9899, 49419, 11657, 30594, 76864, 41330, 2338, 4612, 36070, 31111, 13070, 46619, 12922, 5764, 12080),
+  origen_datos = "https://datosmacro.expansion.com/paises/grupos/g20"
+)
+
+# Calcular la media del PIB per cápita
+media_pib <- mean(oecd_data$pib_percapita)
+
+# Crear la columna 'pib_percapita_respecto' con respecto a la media
+oecd_data$pib_percapita_respecto <- oecd_data$pib_percapita - media_pib
+
+# Ordenar los países por PIB per cápita
+oecd_data <- oecd_data[order(oecd_data$pib_percapita), ]
+
+#Grafico
+ggplot(oecd_data, aes(x = reorder(paises, pib_percapita), y = pib_percapita - 28500, fill = pib_percapita > 28500)) +
+  geom_bar(stat = "identity", width = 0.7) +
+  coord_flip() +
+  scale_y_continuous(breaks = seq(-13500, 50000, by = 13500), labels = function(x) x + 28500) +
+  scale_fill_manual(values = c("#FC4E2A", "#1A9850"), labels = c("Negativo", "Positivo")) +
+  labs(
+    title = "Diferencias en el PIB per capita de paises del G20",
+    subtitle = "La media del PIB per capita es 28.500€",
+    x = "Paises",
+    y = "Diferencia ( €)",
+    fill = "Crecimiento"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(hjust = 0.3, face = "bold", size = 16), 
+    plot.subtitle = element_text(hjust = 0.35), 
+    plot.caption = element_text(hjust = -0.3, vjust = 2, face = "italic")
+  ) + 
+  labs(caption = "Autor: Mario Salvador López Muñoz | Datos: https://datosmacro.expansion.com/paises/grupos/g20")
+
+```
+
+#### **Gráfico 6**
+
+##### **Dia 6: OECE (data day)**
+
+```{r}
+knitr::include_url("https://datawrapper.dwcdn.net/E882I/1/", height = 800)
+
+```
+
+### Semana 2: Distributions
+
+#### **Gráfico 7**
+
+##### **Dia 7: Hazards**
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
+
+df = pd.read_csv('~/Desktop/MasterBigData/0_Visualizacion/Actividad/Datos/Road Accident Data.csv')
+df['Accident_Severity'].replace('Fetal', 'Fatal', inplace=True)
+df_filtrado = df[['Day_of_Week', 'Accident_Severity']]
+df_grouped = df_filtrado.groupby(['Day_of_Week', 'Accident_Severity']).size().unstack(fill_value=0)
+df_grouped_percentage = df_grouped.div(df_grouped.sum(axis=1), axis=0) * 100
+
+
+df_grouped_percentage.index = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
+df_grouped_percentage.columns = ['Muy Grave', 'Severo', 'Leve']
+severity_order = ['Leve', 'Severo', 'Muy Grave']
+colors = ['#6B8E23', '#FF8C00', '#ff0000']
+
+df_grouped_percentage = df_grouped_percentage[severity_order]
+ax = df_grouped_percentage.plot(kind='bar', stacked=True, figsize=(10, 6), color=colors)
+
+
+#Yo diria que en este caso si que se puede hacer zoom, ya que estamos viendo las diferencias que hay entre las columnas. Por debajo de 75% es innecesario y no lleva a confusión
+plt.ylim(60, 105)
+
+ax.yaxis.grid(True)
+ax.yaxis.set_minor_locator(AutoMinorLocator(n=3))
+ax.grid(which='minor', linestyle=':', linewidth='0.5', color='gray') 
+
+plt.xlabel('Dia de la Semana')
+plt.ylabel('Accidentes en porcentaje')
+plt.title('Severidad de Accidentes de trafico por Dia de la semana')
+plt.legend(title='Severity', bbox_to_anchor=(1.05, 1), loc='upper left')
+
+plt.tight_layout()  # Ajusta automáticamente para optimizar el espacio
+plt.show()
+
+```
+
+#### **Gráfico 8**
+
+##### **Dia 8: Circular**
+
+```{r}
+knitr::include_url("https://datawrapper.dwcdn.net/xAvEf/1/", height = 800)
+
+```
+
+#### **Gráfico 9**
+
+##### **Day 9: Major/Minor**
+
+```{r}
+knitr::include_url("https://datawrapper.dwcdn.net/IFeZG/1/", height = 800)
+```
+
+#### **Gráfico 10**
+
+##### **Dia 10: Physical**
+
+```{r}
+knitr::include_url("https://datawrapper.dwcdn.net/ZNKBp/1/", height = 800)
+```
+
+#### **Gráfico 11**
+
+##### **Dia 11: Mobile-Friendly**
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+data = {
+    "category": ["Education", "Entertainment", "Games", "Others", "Photo & Video"],
+    "free": [132, 334, 2257, 1166, 167],
+    "paid": [321, 201, 1605, 832, 182],
+    "total": [453, 535, 3862, 1998, 349],
+    "paid_per": [70.860927, 37.570093, 41.558778, 41.641642, 52.148997],
+    "free_per": [29.139073, 62.429907, 58.441222, 58.358358, 47.851003]
+}
+
+df = pd.DataFrame(data)
+
+list_free = df.free.tolist()
+list_paid = df.paid.tolist()
+
+sns.set(style="whitegrid")
+
+plt.figure(figsize=(15, 8))
+N = len(df)
+ind = np.arange(N)
+width = 0.56
+
+p1 = plt.bar(ind, list_free, width, color='#FF6347', label='free')
+p2 = plt.bar(ind, list_paid, width, bottom=list_free, color='#4682B4', label='paid')
+
+plt.xticks(ind, df['category'])
+plt.legend()
+
+plt.title("Distribución de Aplicaciones Gratis y de Pago por Categoría")
+plt.ylabel("Numero de Aplicaciones")
+plt.figtext(0.5, -0.05, "Gráfico: Mario Salvador López Muñoz - Fuente: Editado a partir de original en Kaggle",
+wrap=True, horizontalalignment='center', fontsize=10, style='italic', color='gray')
+
+plt.show()
+
+```
+
+#### **Gráfico 12**
+
+##### **Dia 12: Reuters graphics**
+
+```{r}
+knitr::include_url("https://datawrapper.dwcdn.net/5TYfl/1/", height = 800)
+
+```
+
+### Semana 3: Relationships
+
+#### **Gráfico 13**
+
+##### **Dia 13: family**
+
+```{r}
+
+library(circlize)
+
+df <- read.csv("https://raw.githubusercontent.com/apalbright/Friends/master/raw_data/friendsdata.csv")
+friends <- combn(c("Chandler", "Joey", "Monica", "Phoebe", "Rachel", "Ross"), 2)
+
+relations <- data.frame(from = friends[1, ], to = friends[2, ])
+total <- list()
+
+dyads <- c("12", "13", "14", "15", "16", "23", "24", "25", "26", "34", "35", "36", "45", "46", "56")
+for (x in dyads) {
+    total[x] = nrow(df[df$dynamics == x, ])
+}
+relations["Total"] = as.numeric(unlist(total))
+
+colors <- c("Chandler" = "tomato", 
+            "Joey" = "goldenrod", 
+            "Monica" = "steelblue", 
+            "Phoebe" = "slateblue", 
+            "Rachel" = "orchid", 
+            "Ross" = "mediumseagreen")
+
+chordDiagram(relations, grid.col = colors)
+
+title("Relaciones entre los personajes de Friends")
+mtext("Autor: Mario Salvador López Muñoz | Datos: https://github.com/apalbright/Friends", 
+      side = 1, line = 4, adj = 1, cex = 0.7, col = "gray50")
+```
+
+#### **Gráfico 14**
+
+##### **Dia 14: heatmap**
+
+```{r}
+library(grid)
+library(pheatmap)
+# Cargar el dataset y crear la matriz
+x <- data.matrix(UScitiesD, rownames.force = TRUE)
+
+# Crear el heatmap
+pheatmap(
+  x,
+  color = heat.colors(256),
+  fontsize_row = 10,           # Tamaño de las etiquetas de las filas
+  fontsize_col = 10,           # Tamaño de las etiquetas de las columnas
+  angle_col = 45,              # Inclinación de las etiquetas de las columnas
+  cellwidth = 20, cellheight = 20,  # Ajuste de tamaño de las celdas
+  border_color = NA,           # Sin bordes para una apariencia más clara
+  display_numbers = FALSE,      # Opcional: muestra o no los valores numéricos
+  cluster_cols = FALSE 
+)
+# Agregar el título y el subtítulo usando grid.text
+grid.text("Distancias entre Ciudades de EE. UU. expresadas en millas", 
+          y = unit(1, "npc") - unit(1, "lines"), 
+          gp = gpar(fontsize = 14, fontface = "bold"))
+grid.text("Autor: Mario Salvador López Muñoz | Datos: UScitiesD (data de R)", 
+          y = 0.05, 
+          gp = gpar(fontsize = 10))
+
+```
+
+#### **Gráfico 15**
+
+##### **Dia 15: historical**
+
+```{r}
+
+wars_data <- data.frame(
+  war = c("Guerra de los Treinta Años", "Guerra de Sucesión Española", "Guerras Napoleónicas", "Primera Guerra Mundial", "Segunda Guerra Mundial", "Guerra de los Siete Años", "Guerra Franco-Prusiana", "Guerra Civil Española", "Guerra de Bosnia", "Guerra de Kosovo", "Guerra de Crimea", "Guerra de los Diez Años", "Guerra de los Balcanes", "Guerra de Irak", "Guerra de Ucrania"),
+  start_year = c(1618, 1701, 1803, 1914, 1939, 1756, 1870, 1936, 1992, 1998, 1853, 1947, 1912, 2003, 2022),
+  end_year = c(1648, 1714, 1815, 1918, 1945, 1763, 1871, 1939, 1995, 1999, 1856, 1954, 1913, 2011, NA)  # 'NA' para conflictos en curso
+)
+
+library(ggplot2)
+
+# Calcular la duración de cada guerra
+wars_data$duration <- wars_data$end_year - wars_data$start_year
+
+# Crear el gráfico
+ggplot(wars_data, aes(x = start_year, y = duration, label = war)) +
+  geom_segment(aes(xend = end_year, yend = duration), size = 3, color = "blue") +
+  geom_text(aes(y = duration, label = war), vjust = -0.5) +
+  labs(title = "Duración de Guerras en Europa",
+       x = "Año",
+       y = "Duración (años)") +
+  theme_minimal()
+
+```
+
+#### **Gráfico 16**
+
+##### **Dia 16: weather**
+
+```{r}
+
+library(dplyr)
+library(lubridate)
+
+# Crear un dataset de ejemplo
+set.seed(123)
+time_data <- data.frame(
+  fecha = seq(ymd("2020-01-01"), ymd("2023-01-01"), by = "month"),
+  temperatura = rnorm(37, mean = 15, sd = 5),  # Temperatura aleatoria
+  precipitacion = rnorm(37, mean = 50, sd = 20)  # Precipitación aleatoria
+)
+
+library(ggplot2)
+
+# Gráfico de líneas para temperatura y precipitación
+ggplot(time_data, aes(x = fecha)) +
+  geom_line(aes(y = temperatura, color = "Temperatura (°C)"), size = 1) +
+  geom_line(aes(y = precipitacion / 2, color = "Precipitación (mm)"), size = 1) +  # Ajustar escala
+  scale_y_continuous(sec.axis = sec_axis(~ .*2, name = "Precipitación (mm)")) +  # Eje secundario
+  labs(title = "Variación de Temperatura y Precipitación a lo Largo del Tiempo",
+       x = "Fecha",
+       y = "Temperatura (°C)",
+       color = "Variables") +
+  theme_minimal()
+
+
+```
+
+#### **Gráfico 17**
+
+##### **Dia 17: networks**
+
+```{r}
+
+library(igraph)
+library(networkD3)
+library(RColorBrewer)
+# Cargar el dataset
+df <- read.csv('Datos/Family Guy Dataset.csv')
+
+# Definir el diccionario de normalización
+normalization_dict <- list(
+  "Peter" = "Peter Griffin",
+  "Brian" = "Brian",
+  "Chris" = "Chris",
+  "Stewie" = "Stewie",
+  "Lois" = "Lois",
+  "Meg" = "Meg",
+  "Cleveland" = "Cleveland",
+  "Quagmire" = "Quagmire",
+  "Joe" = "Joe Swanson",
+  "Carter" = "Carter Pewterschmidt",
+  "Mayor Adam West" = "Mayor Adam West",
+  "Chicken" = "The Giant Chicken",
+  "Herbert" = "Herbert",
+  "Mort Goldman" = "Mort Goldman"
+)
+
+# Función para normalizar nombres de personajes
+normalize_characters <- function(characters, norm_dict) {
+  normalized <- sapply(characters, function(character) {
+    character <- trimws(character)
+    for (key in names(norm_dict)) {
+      if (grepl(key, character, fixed = TRUE)) {
+        return(norm_dict[[key]])
+      }
+    }
+    return(character)
+  })
+  return(normalized)
+}
+
+# Inicializar un data frame vacío para almacenar las conexiones
+connections_df <- data.frame(from = character(), to = character(), peso = integer(), stringsAsFactors = FALSE)
+
+# Crear el DataFrame de conexiones
+for (i in 1:nrow(df)) {
+  if (!is.na(df$Featuring[i])) {
+    characters <- unlist(strsplit(as.character(df$Featuring[i]), ","))
+    normalized_characters <- normalize_characters(characters, normalization_dict)
+    
+    if (length(normalized_characters) > 1) {  # Solo procesar si hay más de un personaje
+      combs <- combn(normalized_characters, 2)
+      for (j in 1:ncol(combs)) {
+        connections_df <- rbind(connections_df, data.frame(from = combs[1, j], to = combs[2, j], peso = 1))
+      }
+    }
+  }
+}
+
+# Contar las conexiones
+links <- aggregate(peso ~ from + to, data = connections_df, FUN = sum)
+# Crear la red
+network <- graph_from_data_frame(d = links, directed = FALSE)
+# Contar el grado de cada nodo
+deg <- degree(network, mode = "all")
+
+# Filtrar nodos para mantener solo los 20 más conectados
+top_nodes <- names(sort(deg, decreasing = TRUE)[1:15])
+filtered_links <- links[links$from %in% top_nodes & links$to %in% top_nodes,]
+
+
+#Cambiamos el color de los links. Normalizamos valores, escojemos paleta aplicamos colores
+filtered_links <- filtered_links %>%
+  mutate(normalized_value = (peso - min(peso)) / (max(peso) - min(peso)))
+palette <- colorRampPalette(brewer.pal(9, "Blues"))
+filtered_links <- filtered_links %>%
+  mutate(linkColor = palette(100)[as.numeric(cut(normalized_value, breaks = 100))])
+
+p <- simpleNetwork(filtered_links, height = "500px", width = "700px",        
+                   Source = 1,                 
+                   Target = 2,
+                   linkDistance = 300,         
+                   charge = -200,             
+                   fontSize = 20,             
+                   fontFamily = "Arial",      
+                   linkColour = filtered_links$linkColor,      
+                   nodeColour = "#FFA500", 
+                   opacity = 0.9,
+                   zoom = TRUE)
+
+p
+
+```
+
+#### **Gráfico 18**
+
+##### **Dia 18: Asian Development Bank (data day)**
+
+```{r}
+#No veas el curro que tiene esto... Y despues para que la unica diferencia es poder poner titulo... Aun se pueden mejorar algunas cosas, pero voy a seguir con otros graficos...
+library(tidyverse)
+library(treemap)
+library(ggfittext)
+library(scales)
+library(ggtext)
+library(readr)
+library(dplyr)
+library(ggplotify)
+
+
+DatosADB <- read_delim("Datos/DatosADB.csv", delim = ";", 
+    escape_double = FALSE, trim_ws = TRUE)
+
+filtered_DatosADB <- DatosADB %>%
+  mutate(Stage = ifelse(Stage == "initial stage with canopy cover 20%", "Initial", Stage)) %>%
+  filter(Stage %in% c("Peak Growth", "Sowing", "Harvested", "Initial")) %>%
+  select(Stage, Description)
+
+grouped_DatosADB <- filtered_DatosADB %>%
+  group_by(Stage, Description) %>%
+  summarize(Valores = n(), .groups = 'drop') %>%
+  arrange(desc(Valores))
+
+grouped_DatosADB$Description <- ifelse(grouped_DatosADB$Description == "Maize (Corn)", "Maize", grouped_DatosADB$Description)
+
+ top_30 <- head(grouped_DatosADB, 30)
+
+# treemap
+data_tree <- treemap(top_30,
+            index=c("Stage","Description"),
+            vSize="Valores",
+            type="index")
+
+data_ggplot <- data_tree[["tm"]] %>% 
+  as_tibble() %>% 
+  arrange(desc(vSize)) %>% 
+  mutate(rank = row_number(),
+         xmax = x0 + w,
+         ymax = y0 + h
+         )
+
+data_ggplot_2 <- data_ggplot %>%
+  group_by(Stage) %>%
+  filter(vSize == max(vSize)) %>%
+  ungroup() 
+
+
+data_ggplot_3 <- data_ggplot %>%
+  filter(!is.na(Description)) %>%  # Filtrar filas donde Description no es NA
+  mutate(Description = as.character(Description))%>%
+  ungroup() %>%
+mutate(size = 3*w * (10 / nchar(Description)))
+
+
+min_size <- 1.5  # Define el tamaño mínimo deseado
+
+p1 <- ggplot() +  # Inicializa ggplot sin un dataframe
+  geom_rect(data = data_ggplot_2,  # Primer conjunto de datos
+             aes(xmin = x0,
+                 ymin = y0,
+                 xmax = xmax,
+                 ymax = ymax,
+                 fill = color),
+             size = 2,
+             colour = "#1E1D23",
+             alpha = 0.5) +  # Transparencia para el primer conjunto
+  geom_text(data = data_ggplot_2,  # Añadir texto del primer conjunto de datos
+            aes(x = (x0 + xmax) / 2,
+                y = (y0 + ymax) / 2,
+                label = Stage),  
+            color = "black",  
+            size = 3,         
+            fontface = "bold") +
+  
+  # Añadir el segundo geom_rect con un segundo conjunto de datos
+  geom_rect(data = data_ggplot_3,  # Segundo conjunto de datos
+             aes(xmin = x0,
+                 ymin = y0,
+                 xmax = xmax,
+                 ymax = ymax,
+                 fill = color),
+             size = 0.5,
+             colour = "#1E1D23",
+             alpha = 0.3) +  # Transparencia para el segundo conjunto
+  
+  geom_text(data = data_ggplot_3,  # Añadir texto del segundo conjunto de datos
+            aes(x = (x0 + xmax) / 2,
+                y = (y0 + ymax) / 2,
+                size = size,
+                label = Description),  
+            color = "black",        
+            fontface = "bold") + 
+  
+  labs(title = "Cosechas de Pakistán",
+       subtitle = "Tamaño del área equivale a la cantidad de plantaciones",
+       caption = "Data: ADB - https://data.adb.org/dataset/ground-truthing-survey-data-crop-type-pakistan-rabi-2022-kharif-2023 | Design: Mario Salvador López") +
+  theme_void() +
+  theme(legend.position = "none") +
+  theme(panel.background = element_rect(fill = "transparent", color = NA),  # Fondo transparente
+        plot.background = element_rect(fill = "transparent", color = NA))  # Fondo transparente para todo el gráfico
+
+
+
+p1
+```
+
+### Semana 4: Timeseries
+
+#### **Gráfico 19**
+
+##### **Dia 19: Dinosaurs**
+
+```{r, fig.width=10, fig.height=10}
+# Paquetes necesarios
+
+#Me he apoyado en este enlace para hacer el grafico: https://github.com/nrennie/30DayChartChallenge/blob/main/2024/ 
+
+library(ggplot2)
+library(dplyr)
+library(showtext)
+library(ggforce)
+library(tibble)
+
+
+# Datos de los eventos históricos
+events <- data.frame(
+  event = c("Mammals", "Dinosaurs", "Coal Swamps", "Land Plants",
+            "Trilobites", "Jellyfish", "Seaweeds", "Sexual\nReproduction", 
+            "Single-Celled Algae", "Iron-\nFormations", 
+            "Oldest Fossils", "Origin of Life", "Meteorite\nBombardment", 
+            "Formation of\nthe Earth"),
+  time = c("23:39", "22:56", "22:24", "21:52", "21:04", 
+           "20:48", "20:28", "18:08", "14:08", "06:00", "05:36", 
+           "04:00", "03:00", "00:00:00")
+)
+
+# Función para convertir el tiempo en ángulos
+time_to_angle <- function(time_str) {
+  parts <- as.numeric(unlist(strsplit(time_str, ":")))
+  hours <- parts[1]
+  minutes <- parts[2]
+  seconds <- ifelse(length(parts) == 3, parts[3], 0)
+  total_seconds <- hours * 3600 + minutes * 60 + seconds
+  angle <- (total_seconds / (24 * 3600)) * 360
+  return(angle)
+}
+
+# Convertir eventos a ángulos y agregar etiquetas
+events <- events %>%
+  mutate(angle = sapply(time, time_to_angle))
+
+events <- events %>%
+  mutate(
+    x = 1.3 * cos((90 - angle) * pi / 180),  # Convertir ángulo a radianes
+    y = 1.3 * sin((90 - angle) * pi / 180),   # Convertir ángulo a radianes
+    x_linea = 1 * cos((90 - angle) * pi / 180),
+    y_linea = 1 * sin((90 - angle) * pi / 180)
+    
+  )
+# Datos del diseño de reloj
+r <- 1.1
+theta <- seq(0, (2 * pi), length.out = 13)[1:12]
+clock_data <- tibble(
+  x = r * cos(theta),
+  y = r * sin(theta),
+  angle = 90 + 360 * (theta / (2 * pi)),
+  label = c("III", "II", "I", "XII", "XI", "X", "IX", "VIII", "VII", "VI", "V", "IV")
+)
+theta2 <- seq(0, (2 * pi), length.out = 61)[1:60]
+clock_data2 <- tibble(
+  x = r * cos(theta2),
+  y = r * sin(theta2)
+)
+
+
+# Configuración de fuentes y colores
+font_add_google("Roboto", "roboto")
+font_add_google("Roboto Slab", "roboto_slab")
+showtext_auto()
+
+bg_col <- "#fafafa"
+text_col <- "grey10"
+body_font <- "roboto"
+title_font <- "roboto_slab"
+
+# Crear el gráfico
+ggplot() +
+  geom_point(
+    data = clock_data2,
+    mapping = aes(x = x, y = y),
+    size = 0.5,
+    colour = text_col
+  ) +
+  geom_label(
+    data = clock_data,
+    mapping = aes(x = x, y = y, label = label),
+    family = title_font,
+    size = 8,
+    label.size = 0,
+    fill = bg_col,
+    colour = text_col,
+    fontface = "bold"
+  ) +
+    geom_label(
+    data = events,
+    mapping = aes(x = x, y = y, label = event),
+    family = title_font,
+    size = 3,
+    label.size = 0,
+    fill = bg_col,
+    colour = text_col,
+    fontface = "bold"
+) +
+    annotate("text", x = -0.00839848,	y = 1.499976,
+    label = "Humanity", size = 3,
+    family = body_font, colour = text_col,
+    fontface = "bold"
+) +
+    geom_segment(
+    data = events,
+    aes(x = 0, y = 0, xend = x_linea, yend = y_linea), 
+    color = "grey50", # Color de las líneas
+    linewidth = 0.5 # Grosor de las líneas
+  ) +  
+  geom_segment(
+    aes(x = 0, y = 0, xend = -7.839396e-03, yend = 1.3999781),
+    colour = "grey50",  # Cambia el color de la línea según lo desees
+    linewidth = 0.5  # Ajusta el grosor de la línea si es necesario
+  ) +
+
+  scale_fill_manual(
+    values = c("gray80", "gray50", "gray20")
+  ) +
+  labs(
+    title = "Historia de la Tierra",
+    subtitle = "Si la historia de la tierra estuviese comprimda en 12 horas, la humanidad solo\n habria estado presente durante 39 segundos, los dinosaurios 30 minutos.",
+    caption = "**Graphic**: Mario Salvador López Muñoz. Editado de: https://flowingdata.com/2012/10/09/history-of-earth-in-24-hour-clock/"
+  ) +
+  coord_fixed() +
+  theme_void(base_size = 24, base_family = body_font) +
+  theme(
+    legend.position = "none",
+    plot.background = element_rect(fill = bg_col, colour = bg_col),
+    panel.background = element_rect(fill = bg_col, colour = bg_col),
+    plot.title = element_text(family = title_font, colour = text_col, size = 12, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(family = body_font, colour = text_col, size =10, hjust = 0.5),
+    plot.caption = element_text(family = body_font, colour = text_col, size = 8, hjust = 0.5)
+  )
+
+```
+
+#### **Gráfico 20**
+
+##### **Dia 20: correlation**
+
+```{python}
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.spatial.distance import pdist, squareform
+
+# Cargar el conjunto de datos
+dataset = pd.read_csv("Datos/global-data-on-sustainable-energy (1).csv")
+
+# Seleccionar columnas específicas
+filtered_dataset = dataset[["Entity", "Year", "Renewable-electricity-generating-capacity-per-capita"]]
+
+# Filtrar los datos para eliminar filas con valores NaN
+filtered_dataset = filtered_dataset.dropna(subset=["Renewable-electricity-generating-capacity-per-capita"])
+
+train_transpuesto = filtered_dataset.transpose()
+train_transpuesto = filtered_dataset.pivot(index='Entity', columns='Year', values='Renewable-electricity-generating-capacity-per-capita')
+
+distance_matrix = pd.DataFrame(squareform(pdist(train_transpuesto, metric='euclidean')),
+                               index=train_transpuesto.index, columns=train_transpuesto.index)
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(distance_matrix, cmap='coolwarm', annot=False)
+plt.title('Matriz de Distancia (Heatmap)')
+plt.show()
+```
+
+#### **Gráfico 21**
+
+##### **Dia 21:green energy**
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+
+green_data <- read_csv("Datos/global-data-on-sustainable-energy (1).csv")
+
+filtered_green_data <- green_data %>%
+  filter(!is.na(green_data$`Renewable-electricity-generating-capacity-per-capita`)) %>%
+  select(Entity, Year, 'Renewable-electricity-generating-capacity-per-capita')
+
+total_capacity <- filtered_green_data %>%
+  group_by(Entity) %>%
+  summarise(total_renewable_capacity = sum(`Renewable-electricity-generating-capacity-per-capita`, na.rm = TRUE)) %>%
+  arrange(desc(total_renewable_capacity))  # Ordenar de mayor a menor
+
+top_7_entities <- total_capacity %>%
+  slice_head(n = 7)
+
+final_green_data <- filtered_green_data  %>%
+  filter(Entity %in% top_7_entities$Entity)
+
+# Crear el gráfico de líneas
+line_plot <- ggplot(final_green_data, aes(x = Year, y = `Renewable-electricity-generating-capacity-per-capita`, color = Entity, group = Entity)) +
+  geom_line(size = 1) +  # Dibujar líneas
+  geom_text_repel(data = final_green_data %>% group_by(Entity) %>% summarise(last_year = max(Year), last_value = last(`Renewable-electricity-generating-capacity-per-capita`)),
+            aes(x = last_year, y = last_value, label = Entity), 
+            vjust =  0.5,
+            hjust = 0,
+            nudge_x = 3,
+            size = 3) +
+  labs(title = "Paises con mayor Generación de Electricidad Renovable per cápita del mundo",
+       x = "Año",
+       y = "Capacidad Renovable de Electricidad por Persona (kW/hab)",
+       caption = "**Graphic**: Mario Salvador López Muñoz. Datos: https://www.kaggle.com/datasets/anshtanwar/global-data-on-sustainable-energy") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+print(line_plot)
+```
+
+#### **Gráfico 22**
+
+##### **Dia 22: mobility**
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyr)
+
+tourist_data <- read_delim("Datos/International tourist arrivals new.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+tourist_data_wide <- tourist_data %>%
+  pivot_wider(
+    names_from = Year,  # Cada año se convierte en una columna
+    values_from = `International tourist arrivals by region`  # Los valores de cada año
+  )
+
+write.csv(tourist_data_wide, "Datos/tourist_data_ready.csv", row.names = FALSE)
+```
+
+```{r}
+knitr::include_url("https://datawrapper.dwcdn.net/7hfXe/1/", height = 800)
+```
+
+#### **Gráfico 23**
+
+##### **Dia 23: tiles**
+
+```{r}
+knitr::include_url("https://datawrapper.dwcdn.net/gRfjh/1/", height = 800)
+```
+
+#### **Gráfico 24**
+
+##### **Dia 24: ILO Region for Africa (data day)**
+
+```{r}
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(viridis)
+library(ggExtra)
+
+
+pobreza <- read_csv("Datos/SDG_0111_SEX_AGE_RT_A-20241104T2221.csv")
+
+filtered_pobreza <- pobreza %>%
+  filter(sex.label == "Sex: Total") %>%
+  filter(classif1.label == "Age (Youth, adults): 15+") %>%
+  select(ref_area.label, sex.label, time, obs_value)
+
+filtered_pobreza_2 <- filtered_pobreza %>%
+  filter(!grepl("Upper-middle|Lower-middle|Low income|High income|World|Asia|America|Southern|Northern|Eastern|Western|APEC|G20|BRICS|ASEAN|MENA|CARICOM", ref_area.label))
+
+pobreza_2001 <- filtered_pobreza_2 %>%
+  filter(time == 2001) %>%
+  select(ref_area.label, obs_value) %>%
+  arrange(obs_value)  # Ordena de mayor a menor
+
+paises_ordenados <- pobreza_2001$ref_area.label
+
+ordered_pobreza <- filtered_pobreza_2 %>%
+  mutate(ref_area.label = factor(ref_area.label, levels = paises_ordenados)) %>%
+  arrange(ref_area.label)  # Ahora ordena el dataframe original según el nuevo factor
+
+lista_paises <- unique(filtered_pobreza_2$ref_area.label)
+```
+
+```{r}
+library(viridis)
+library(ggExtra)
+
+p <-ggplot(ordered_pobreza, aes(time,ref_area.label,fill=obs_value)) +
+  geom_tile(color= "white",size=0.1) + 
+  scale_fill_viridis(name="Porcentaje",option ="C")
+#p <-p + facet_grid(year~month)
+p <-p + scale_y_discrete(breaks = unique(filtered_pobreza$ref_area.label))
+p <-p + scale_x_continuous()
+p <-p + theme_minimal(base_size = 8)
+p <-p + labs(title= paste("Porcentaje de la poblacion trabajadora que vive\n con menos de 2.15$ al dia"), x="Año", y="")
+p <-p + theme(legend.position = "bottom")+
+  theme(plot.title=element_text(size = 14))+
+  theme(axis.text.y=element_text(size=6)) +
+  theme(strip.background = element_rect(colour="white"))+
+  theme(plot.title=element_text(hjust=0))+
+  theme(axis.ticks=element_blank())+
+  theme(axis.text=element_text(size=7))+
+  theme(legend.title=element_text(size=8))+
+  theme(legend.text=element_text(size=6))+
+  labs(caption = "Graphic: Mario Salvador López Muñoz. Datos: https://ilostat.ilo.org/topics/working-poverty/") +
+  removeGrid()#ggExtra
+
+p
+```
+
+### Semana 5: Uncertainties
+
+#### **Gráfico 25**
+
+##### **Dia 25: global change**
+
+```{r}
+#Importación de los datos
+data <- read_csv("Datos/export_Datos_Clima_Madrid.csv")
+
+data$date <- as.Date(data$date, format="%Y-%m")
+
+data_temp <- data %>% mutate(year = year(date),
+                  month = month(date, label=TRUE),
+                  day = day(date))
+
+data_temp <-data_temp %>% select(day,month,year,tavg)%>%
+        fill(tavg)%>%
+  filter(year != 2014)
+str(data_temp)
+```
+
+```{r}
+
+data_temp$month <- factor(data_temp$month, levels = c("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"), ordered = TRUE)
+
+p <-ggplot(data_temp,aes(month,day,fill=tavg))+
+  geom_tile(color= "white",size=0.1) + 
+  scale_fill_viridis(name="Temperatura C",option ="C")
+p <-p + facet_grid(year~ .)
+p <-p + scale_y_reverse(breaks =c(1,10,20,31))
+p <-p + scale_x_discrete(aes(x = month))
+p <-p + theme_minimal(base_size = 8)
+p <-p + labs(title= paste("Lo que no se nota, pero es indudable"), x="Meses", y="Dia")
+p <-p + theme(legend.position = "bottom")+
+  theme(plot.title=element_text(size = 14))+
+  theme(axis.text.y=element_text(size=6)) +
+  theme(strip.background = element_rect(colour="white"))+
+  theme(plot.title=element_text(hjust=0))+
+  theme(axis.ticks=element_blank())+
+  theme(axis.text=element_text(size=7))+
+  theme(legend.title=element_text(size=8))+
+  theme(legend.text=element_text(size=6))+
+  labs(caption = "Graphic: Mario Salvador López Muñoz. Adaptado de: https://r-graph-gallery.com/283-the-hourly-heatmap.html. Datos: https://ilostat.ilo.org/topics/working-poverty/") +
+  removeGrid()
+ 
+p #awesomeness
+```
+
+#### **Gráfico 26**
+
+##### **Dia 26: ai**
+
+```{r}
+knitr::include_graphics("Datos/Diseño/2.png")
+```
+
+#### **Gráfico 27**
+
+##### **Dia 27: good/bad**
+
+```{python}
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
+# Datos
+data = {
+    'Alimento': ['Brócoli', 'Zanahorias', 'Patatas fritas', 'Galletas', 
+                 'Manzanas', 'Refresco', 'Pescado', 'Hamburguesa', 
+                 'Yogur', 'Pastel'],
+    'Puntuación': [9, 8, 3, 2, 9, 1, 10, 4, 7, 3]
+}
+
+df = pd.DataFrame(data)
+
+# Configurar el estilo de seaborn
+sns.set(style="whitegrid")
+
+# Crear el gráfico de barras
+plt.figure(figsize=(8, 6))
+barplot = sns.barplot(x='Puntuación', y='Alimento', data=df, palette='RdYlGn', hue='Puntuación')
+
+# Añadir etiquetas y título
+plt.title('Clasificación de Alimentos\n Bueno vs Malo', fontsize=16, fontweight='bold')
+plt.xlabel('Puntuación (1: Malo, 10: Bueno)', fontsize=14)
+plt.ylabel('Alimento', fontsize=14)
+
+
+plt.xlim(0, 11)  
+plt.tight_layout()
+plt.show()
+
+```
+
+#### **Gráfico 28**
+
+##### **Dia 28: trend**
+
+```{python}
+
+import pandas as pd
+from pandasql import sqldf
+import matplotlib.pylab as plt
+import seaborn as sns
+
+articles = pd.read_csv("Datos/articles.csv")
+
+articles['garment_group_name'] = articles['garment_group_name'].replace({
+    'Woven/Jersey/Knitted mix Baby': 'Jersey',
+    'Unknown': 'Other',
+    "Under-, Nightwear": "Under/Nightwear",
+    "Dresses/Skirts girls": "Dresses/Skirts",
+    "Dresses Ladies": "Dresses/Skirts"
+    
+})
+
+temp = articles.groupby(["garment_group_name"])["product_type_name"].nunique()
+df = pd.DataFrame({"Garment Group": temp.index, "Product Types": temp.values})
+df = df.sort_values(["Product Types"], ascending=False)
+
+fig, ax = plt.subplots(figsize=(7.5,4), dpi=150)
+plt.title("Cantidad de productos para cada tipo de vestimenta", fontsize=16, fontweight='bold')
+plt.xlabel('Cantidad de productos distintos', fontsize=14)
+plt.ylabel('Tipo de vestimenta', fontsize=14)
+
+s = sns.barplot(y="Garment Group", x="Product Types", data=df, hue = "Garment Group", palette="cubehelix", legend=False)
+
+plt.figtext(0.5, -0.05, "Gráfico: Mario Salvador López Muñoz - Fuente: Filmaffinity - Creado con python y ChatGPT",
+wrap=True, horizontalalignment='center', fontsize=5, style='italic', color='gray')
+
+plt.tight_layout()
+plt.show()
+```
+
+#### **Gráfico 29**
+
+##### **Dia 29: black'n'white**
+
+```{r}
+library(ggradar)
+library(tidyverse)
+library(scales)
+library(showtext)
+library(viridis)
+
+data <- as.data.frame(matrix( c( 
+  "Dalmata", 7, 5, 8, 4, 8, 9,        # Valores de Dálmata
+  "Border Collie",10, 9, 8, 9, 4, 10,         # Valores de Border Collie
+  "Boston Terrier",6, 7, 9, 7, 7, 6,        # Valores de Boston Terrier
+  "Schnauzer", 8, 7, 4, 6, 8, 7         # Valores de Schnauzer
+), nrow=4, byrow=TRUE))
+
+
+# Asignar nombres a las filas
+colnames(data) <- c("Species", "Inteligencia", "Valentía", "Lealtad", "Habilidades", "Sociabilidad", "Energía")
+  
+# Convertir columnas a numérico
+data$Inteligencia <- as.numeric(data$Inteligencia)
+data$Valentía <- as.numeric(data$Valentía)
+data$Lealtad <- as.numeric(data$Lealtad)
+data$Habilidades <- as.numeric(data$Habilidades)
+data$Sociabilidad <- as.numeric(data$Sociabilidad)
+data$Energía <- as.numeric(data$Energía)
+
+# Y así sucesivamente
+lcols <- c("#D3D3D3", "#A9A9A9", "#696969", "#404040")
+
+radar <- data %>%
+  ggradar(
+    font.radar = "roboto",
+    grid.label.size = 4, 
+    axis.label.size = 4,
+    group.point.size = 3,
+    gridline.min.colour = "gray60",
+    gridline.mid.colour = "gray60",
+    gridline.max.colour = "gray60",
+    group.colours = lcols
+  )
+
+radar <- radar + 
+  theme(
+    legend.position = c(0.25, 0.26),  
+    legend.justification = c(1, 0),
+    legend.text = element_text(size = 7, family = "roboto"),
+    legend.key = element_rect(fill = NA, color = NA),
+    legend.background = element_blank(),
+    legend.spacing.y = unit(10, "cm"),
+    legend.key.size = unit(10, "cm")
+  )
+radar <- radar + 
+  labs(title = "Mejores amigos en blanco y negro") + 
+  theme(
+      plot.background = element_rect(fill = "#fbf9f4", color = "#fbf9f4"),
+      panel.background = element_rect(fill = "#fbf9f4", color = "#fbf9f4"),
+      plot.title.position = "plot", # slightly different from default
+      plot.title = element_text(
+        family = "sans", 
+        size = 20,
+        face = "bold", 
+        color = "#000000"
+    )
+  )
+print(radar)
+```
+
+#### **Gráfico 30**
+
+##### **Dia 30: FiveThirtyEight (dataday)**
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+
+president <- read_csv("Datos/presidential_general_averages.csv")
+
+president <- president %>%
+  filter(cycle == 2020) %>%
+  select(candidate, date, state, pct_trend_adjusted)
+
+president <- president %>%
+  group_by(state) %>%
+  slice_max(order_by = pct_trend_adjusted, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  mutate(pct_trend_adjusted = round(pct_trend_adjusted)) %>%
+  ungroup()
+
+write.csv(president, "president_data.csv", row.names = FALSE)
+
+#Datos de poblacion obtenidos de wikipedia y editados con excel
+```
+
+```{r}
+knitr::include_url("https://datawrapper.dwcdn.net/nKD4f/1/", height = 800)
+
+```
